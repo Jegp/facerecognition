@@ -1,0 +1,9 @@
+bin
+domain/
+domain_corrected/
+famous/
+include/
+lib/
+pip-selfcheck.json
+unknown/
+unknown_corrected/
