@@ -2,8 +2,10 @@ bin
 domain/
 domain_corrected/
 famous/
+famous_corrected
 include/
 lib/
 pip-selfcheck.json
+preparation
 unknown/
 unknown_corrected/
