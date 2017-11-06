@@ -9,3 +9,10 @@ pip-selfcheck.json
 preparation
 unknown/
 unknown_corrected/
+.Model 1.py.swp
+.ipynb_checkpoints/
+Untitled.ipynb
+__pycache__/
+data/
+man/
+share/
