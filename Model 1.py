@@ -19,35 +19,44 @@ from hyperopt import Trials, STATUS_OK, tpe
 # In[17]:
 
 def create_model(x_train, y_train, x_test, y_test):
-    timesteps = 10
     data_dim = 1
     num_classes = 5
 
-    # Expected input batch shape: (batch_size, timesteps, data_dim)
+    # Expected input shape: (batch_size, data_dim)
     # Note that we have to provide the full batch_input_shape since the network is stateful.
     # the sample of index i in batch k is the follow-up for the sample i in batch k-1.
     model = Sequential()
-    if conditional({{choice(['two', 'three'])}}) == 'two':
-        model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
+    branch = conditional({{choice(['two', 'three', 'four'])}})
+    if branch == 'two':
+        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}},
+                       input_shape=(1, data_dim)))
+    elif branch == 'three':
+        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}}, return_sequences=True,
+                       input_shape=(1, data_dim)))
+        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}},
                        input_shape=(1, data_dim)))
     else:
-        model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
+        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}}, return_sequences=True,
                        input_shape=(1, data_dim)))
-        model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
+        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}}, return_sequences=True,
+                       input_shape=(1, data_dim)))
+        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}},
                        input_shape=(1, data_dim)))
         
+        
     model.add({{choice([Dropout(0.5), Activation('linear')])}})
-    model.add(Dense(num_classes, activation='relu'))
+    model.add(Dense(num_classes, activation={{choice(['softmax', 'relu', 'tanh', 'sigmoid'])}}))
 
-    model.compile(loss='sparse_categorical_crossentropy', metrics=['accuracy'],
-                  optimizer={{choice(['rmsprop', 'adam', 'sgd'])}})
+    model.compile(loss='categorical_crossentropy', metrics=['accuracy'],
+                 optimizer={{choice(['rmsprop', 'adam', 'sgd'])}})
     
-   # early_stopping = EarlyStopping(monitor='val_loss', patience=16)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=6)
 
     model.fit(x_train, y_train,
               batch_size={{choice([32, 64, 128])}},
-              epochs=1,
-              callbacks=[])
+              epochs=100,
+              validation_data=(x_test, y_test),
+              callbacks=[early_stopping])
 
     score, acc = model.evaluate(x_test, y_test, verbose=0)
 
@@ -90,6 +99,8 @@ def data():
 
     y_train = to_categorical(y_train)
     y_test = to_categorical(y_test)
+
+    print(y_train.shape)
 
     return x_train, y_train, x_test, y_test
 
