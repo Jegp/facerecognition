@@ -5,7 +5,7 @@ with open("output.txt") as data:
 
 
 all_y = [int(subject[2]) for subject in subjects]
-scale_y = scale(all_y)
+scale_y = scale(all_y,with_std = 1)
 
 def labelmodifications():
     x1 = []
@@ -25,5 +25,7 @@ def labelmodifications():
 
 
 new_data = labelmodifications()
-print(sorted(scale_y))
+with open("modified_data.txt", "w") as outfile:
+    json.dump(new_data, outfile)
 
+print(len([e for e in all_y if e<3]))
