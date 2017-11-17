@@ -17,15 +17,17 @@ def labelmodifications():
         x2.append(subjects[i][4])
         linear.append(scale_y[i])
         if e <= 1:
-            binary.append(0)       
+            binary.append(0)
+        elif e == 2:
+            binary.append(None)
         elif e >= 3:
             binary.append(1)
     
     return [x1, x2, all_y, linear, binary]
 
-
 new_data = labelmodifications()
 with open("modified_data.txt", "w") as outfile:
     json.dump(new_data, outfile)
 
-print(len([e for e in all_y if e<3]))
+
+
