@@ -73,27 +73,18 @@ def data():
     x_test = []
     y_test = []
 
-    with open("data_model1.json") as data:
-        subjects = json.load(data)
+    with open("modified_data.txt") as data:
+        rows = json.load(data)
 
-        for subject in subjects:
-            subject = np.array(subject)
-
-            x_train.append(np.take(subject[0], ids_train))
-            y_train.append(np.take(subject[1], ids_train))
-            x_test.append(np.take(subject[0], ids_test))
-            y_test.append(np.take(subject[1], ids_test))
-
-    x_train = np.array(x_train).flatten().reshape(-1, 1, 1)
-    y_train = np.array(y_train).flatten() - 1
-    x_test = np.array(x_test).flatten().reshape(-1, 1, 1)
-    y_test = np.array(y_test).flatten() - 1
+        x_train = np.take(rows[0], ids_train).reshape(-1, 1, 1)
+        x_test = np.take(rows[0], ids_test).reshape(-1, 1, 1)
+        y_train = (np.take(rows[2], ids_train) - 1).reshape(-1, 1)
+        y_test = (np.take(rows[2], ids_test) - 1).reshape(-1, 1)
 
     y_train = to_categorical(y_train)
     y_test = to_categorical(y_test)
 
     return x_train, y_train, x_test, y_test
-
 
 # In[16]:
 
