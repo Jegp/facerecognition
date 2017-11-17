@@ -12,18 +12,23 @@ def labelmodifications():
     x2 = []
     linear = []
     binary = []
+    binary_3 = []
+
     for i,e in enumerate(all_y):
         x1.append(subjects[i][3])
         x2.append(subjects[i][4])
         linear.append(scale_y[i])
         if e <= 1:
             binary.append(0)
+            binary_3.append(0)
         elif e == 2:
-            binary.append(None)
+            binary.append(1)
+            binary_3.append(None)
         elif e >= 3:
             binary.append(1)
+            binary_3.append(1)
     
-    return [x1, x2, all_y, linear, binary]
+    return [x1, x2, all_y, linear, binary, binary_3]
 
 new_data = labelmodifications()
 with open("modified_data.txt", "w") as outfile:
