@@ -38,7 +38,7 @@ def create_model(x_train, y_train, x_test, y_test):
     if branch == 'two':
         model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}},
                        input_shape=(1, data_dim)))
-    elif branch == 'three2':
+    elif branch == 'three':
         model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}}, return_sequences=True,
                        input_shape=(1, data_dim)))
         model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}},
