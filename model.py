@@ -54,7 +54,13 @@ def create_model(x_train, y_train, x_test, y_test):
     model.add({{choice([Dropout(0.5), Activation('linear')])}})
     model.add(Dense(num_classes, activation={{choice(['softmax', 'relu', 'tanh', 'sigmoid'])}}))
 
-    model.compile(loss={{choice(['categorical_crossentropy', 'mean_squared_error', 'mean_absolute_error'])}}, metrics=['categorical_accuracy'],
+    # Change loss function based on input dimensionality
+    if num_classes == 1:
+        model.compile(loss={{choice(['mean_squared_error', 'mean_absolute_error',
+                                 'binary_crossentropy'])}}, metrics=['binary_accuracy'],
+                 optimizer={{choice(['rmsprop', 'adam', 'sgd'])}})
+    else:
+        model.compile(loss={{choice(['mean_squared_error', 'mean_absolute_error'])}}, metrics=['categorical_accuracy'],
                  optimizer={{choice(['rmsprop', 'adam', 'sgd'])}})
 
     early_stopping = EarlyStopping(monitor='val_loss', patience=6)
