@@ -151,5 +151,6 @@ if __name__ == '__main__':
                                           algo=tpe.suggest,
                                           max_evals=100,
                                           trials=Trials())
+print("Best run:")
 print(best_run)
 os.remove("args.dat")
