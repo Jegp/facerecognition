@@ -106,7 +106,7 @@ def data():
         if y_value == "binary":
             return (4, 2)
         elif y_value == "binaryno23":
-            return (5, 2)
+            return (5, 1)
         elif y_value == "linear":
             return (3, 5)
         else:
@@ -115,11 +115,11 @@ def data():
     # Set the seed to achieve same sorting
     random.seed(6781693213)
 
-    ids = list(range(0, 99))
+    ids = list(range(0, 999))
     random.shuffle(ids)
 
-    ids_train = ids[:80]
-    ids_test = ids [80:]
+    ids_train = ids[:880]
+    ids_test = ids [880:]
 
     x_data_indices = load_x_indices()
     y_data_index = load_y_index_and_classes()[0]
@@ -129,21 +129,27 @@ def data():
 
         # Remove NAN values if 3 is removed
         if y_data_index == 5:
-            ids_train = [x[0] for x in enumerate(rows[5]) if not x[1] == None]
-            ids_test = [x[0] for x in enumerate(rows[5]) if not x[1] == None]
+            ids_train = [x[0] for x in enumerate(rows[5][:880]) if not x[1] == None]
+            ids_test = [x[0] for x in enumerate(rows[5][880:]) if not x[1] == None]
+        elif x_data_indices[0] == 1:
+            ids_train = [x[0] for x in enumerate(rows[1][:880]) if len(x[1]) > 200]
+            ids_test = [x[0] for x in enumerate(rows[1][880:]) if len(x[1]) > 200]
+
+        y_train = (np.take(rows[y_data_index], ids_train)).reshape(-1, 1)
+        y_test = (np.take(rows[y_data_index], ids_test)).reshape(-1, 1) 
 
         if len(x_data_indices) == 2:
             x_train = np.take(rows[x_data_indices[0]:x_data_indices[1]], ids_train).reshape(-1, 1, 1)
             x_test = np.take(rows[x_data_indices[0]:x_data_indices[1]], ids_test).reshape(-1, 1, 1)
-        elif x_data_indices[0] == 1:
-            x_train = np.array([x[:311] for x in np.take(rows[x_data_indices[0]], ids_train)])
-            x_test = np.array([x[:311] for x in np.take(rows[x_data_indices[0]], ids_test)])
-        else:
-            x_train = np.take(rows[x_data_indices[0]], ids_train).reshape(-1, 1, 1)
-            x_test = np.take(rows[x_data_indices[0]], ids_test).reshape(-1, 1, 1)
 
-        y_train = (np.take(rows[y_data_index], ids_train)).reshape(-1, 1)
-        y_test = (np.take(rows[y_data_index], ids_test)).reshape(-1, 1) 
+        elif x_data_indices[0] == 1:
+            x_train = [np.array(x[:213]) for x in np.take(rows[x_data_indices[0]], ids_train)]
+            x_test = [np.array(x[:311]) for x in np.take(rows[x_data_indices[0]], ids_test)]
+        else:
+            x_train = np.array([np.array(x) for x in np.take(rows[x_data_indices[0]], ids_train)]).reshape(-1, 1, 1)
+            x_test = np.array([np.array(x) for x in np.take(rows[x_data_indices[0]], ids_test)]).reshape(-1, 1, 1)
+
+    print(x_train[0].shape)
 
     return x_train, y_train, x_test, y_test
 
