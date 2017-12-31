@@ -21,7 +21,7 @@ def create_model(x_train, y_train, x_test, y_test):
             y_value = json.load(d)["y"]
         if y_value == "binary":
             return (4, 1)
-        elif y_value == "binaryno3":
+        elif y_value == "binaryno23":
             return (5, 1)
         elif y_value == "linear":
             return (3, 5)
@@ -94,7 +94,7 @@ def data():
             y_value = json.load(d)["y"]
         if y_value == "binary":
             return (4, 2)
-        elif y_value == "binaryno3":
+        elif y_value == "binaryno23":
             return (5, 2)
         elif y_value == "linear":
             return (3, 5)
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     parser.add_argument('X', metavar='X', type=str,
                        help='the input data; either fixations, xy or fixationsxy')
     parser.add_argument('y', metavar='y', type=str,
-                       help='the output data; either binary, binaryno3, linear')
+                       help='the output data; either binary, binaryno23, linear')
 
     args = parser.parse_args()
 
