@@ -51,7 +51,7 @@ def create_model(x_train, y_train, x_test, y_test):
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
                        input_shape=(1, data_dim)))
 
-    model.add({{choice([Dropout(0.5), Activation('linear')])}})
+    model.add({{choice([Dropout(0.5), Dropout(0.2)])}})
     model.add(Dense(num_classes, activation={{choice(['softmax', 'relu', 'tanh', 'sigmoid'])}}))
 
     # Change loss function based on input dimensionality
@@ -118,24 +118,21 @@ def data():
 
         # Remove NAN values if 3 is removed
         if y_data_index == 5:
-            ids_train = [x for x in rows[y_data_index] if not x == None]
-            ids_test = [x for x in rows[y_data_index] if not x == None]
+            ids_train = [x[0] for x in enumerate(rows[5]) if not x[1] == None]
+            ids_test = [x[0] for x in enumerate(rows[5]) if not x[1] == None]
 
         if len(x_data_indices) == 2:
             x_train = np.take(rows[x_data_indices[0]:x_data_indices[1]], ids_train).reshape(-1, 1, 1)
             x_test = np.take(rows[x_data_indices[0]:x_data_indices[1]], ids_test).reshape(-1, 1, 1)
-            y_train = (np.take(rows[y_data_index], ids_train) - 1).reshape(-1, 1)
-            y_test = (np.take(rows[y_data_index], ids_test) - 1).reshape(-1, 1)
         elif x_data_indices[0] == 1:
             x_train = np.take(rows[x_data_indices[0]], ids_train).reshape(-1, 1)
             x_test = np.take(rows[x_data_indices[0]], ids_test).reshape(-1, 1)
-            y_train = (np.take(rows[y_data_index], ids_train) - 1).reshape(-1, 1)
-            y_test = (np.take(rows[y_data_index], ids_test) - 1).reshape(-1, 1)
         else:
             x_train = np.take(rows[x_data_indices[0]], ids_train).reshape(-1, 1, 1)
             x_test = np.take(rows[x_data_indices[0]], ids_test).reshape(-1, 1, 1)
-            y_train = (np.take(rows[y_data_index], ids_train) - 1).reshape(-1, 1)
-            y_test = (np.take(rows[y_data_index], ids_test) - 1).reshape(-1, 1)
+
+        y_train = (np.take(rows[y_data_index], ids_train)).reshape(-1, 1)
+        y_test = (np.take(rows[y_data_index], ids_test)).reshape(-1, 1) 
 
     return x_train, y_train, x_test, y_test
 
