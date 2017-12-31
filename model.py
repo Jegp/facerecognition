@@ -138,9 +138,6 @@ def data():
             y_test = (np.take(rows[y_data_index], ids_test) - 1).reshape(-1, 1)
 
 
-    y_train = to_categorical(y_train)
-    y_test = to_categorical(y_test)
-
     return x_train, y_train, x_test, y_test
 
 # In[16]:
@@ -163,6 +160,10 @@ if __name__ == '__main__':
                                           algo=tpe.suggest,
                                           max_evals=100,
                                           trials=Trials())
+    with open('model_' + args.X + "_" + args.y + ".model", 'w') as outfile:
+        json.dump(best_model.to_json(), outfile)
+    best_model.save_weights('model_' + args.X + "_" + args.y + ".weights")
+    
 print("Best run:")
 print(best_run)
 os.remove("args.dat")
