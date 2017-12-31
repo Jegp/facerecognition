@@ -138,8 +138,6 @@ def data():
             y_test = (np.take(rows[y_data_index], ids_test) - 1).reshape(-1, 1)
 
 
-    y_train = to_categorical(y_train)
-    y_test = to_categorical(y_test)
 
     return x_train, y_train, x_test, y_test
 
