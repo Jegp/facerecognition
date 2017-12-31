@@ -36,19 +36,19 @@ def create_model(x_train, y_train, x_test, y_test):
     model = Sequential()
     branch = conditional({{choice(['two', 'three', 'four'])}})
     if branch == 'two':
-        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}},
+        model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
                        input_shape=(1, data_dim)))
     elif branch == 'three':
-        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}}, return_sequences=True,
+        model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
                        input_shape=(1, data_dim)))
-        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}},
+        model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
                        input_shape=(1, data_dim)))
     else:
-        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}}, return_sequences=True,
+        model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
                        input_shape=(1, data_dim)))
-        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}}, return_sequences=True,
+        model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
                        input_shape=(1, data_dim)))
-        model.add(LSTM({{choice([8, 16, 32, 64, 128, 256, 512])}},
+        model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
                        input_shape=(1, data_dim)))
 
     model.add({{choice([Dropout(0.5), Activation('linear')])}})
@@ -126,11 +126,17 @@ def data():
             x_test = np.take(rows[x_data_indices[0]:x_data_indices[1]], ids_test).reshape(-1, 1, 1)
             y_train = (np.take(rows[y_data_index], ids_train) - 1).reshape(-1, 1)
             y_test = (np.take(rows[y_data_index], ids_test) - 1).reshape(-1, 1)
+        elif x_data_indices[0] == 1:
+            x_train = np.take(rows[x_data_indices[0]], ids_train).reshape(-1, 1)
+            x_test = np.take(rows[x_data_indices[0]], ids_test).reshape(-1, 1)
+            y_train = (np.take(rows[y_data_index], ids_train) - 1).reshape(-1, 1)
+            y_test = (np.take(rows[y_data_index], ids_test) - 1).reshape(-1, 1)
         else:
             x_train = np.take(rows[x_data_indices[0]], ids_train).reshape(-1, 1, 1)
             x_test = np.take(rows[x_data_indices[0]], ids_test).reshape(-1, 1, 1)
             y_train = (np.take(rows[y_data_index], ids_train) - 1).reshape(-1, 1)
             y_test = (np.take(rows[y_data_index], ids_test) - 1).reshape(-1, 1)
+
 
     y_train = to_categorical(y_train)
     y_test = to_categorical(y_test)
