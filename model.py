@@ -16,6 +16,10 @@ import random
 
 def create_model(x_train, y_train, x_test, y_test):
 
+    def load_x_value():
+        with open("args.dat") as d:
+            return json.load(d)["X"]
+
     def load_y_index_and_classes():
         with open("args.dat") as d:
             y_value = json.load(d)["y"]
@@ -27,7 +31,14 @@ def create_model(x_train, y_train, x_test, y_test):
             return (3, 5)
         else:
             return "Unknown predictor variable"
-    data_dim = 1
+
+    x_value = load_x_value()
+    if x_value == "xy":
+        len_dim = 311
+        data_dim = 2
+    else:
+        len_dim = 1
+        data_dim = 1
     num_classes = load_y_index_and_classes()[1]
 
     # Expected input shape: (batch_size, data_dim)
@@ -37,19 +48,19 @@ def create_model(x_train, y_train, x_test, y_test):
     branch = conditional({{choice(['two', 'three', 'four'])}})
     if branch == 'two':
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
-                       input_shape=(1, data_dim)))
+                   input_shape=(len_dim, data_dim)))
     elif branch == 'three':
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
-                       input_shape=(1, data_dim)))
+                       input_shape=(len_dim, data_dim)))
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
-                       input_shape=(1, data_dim)))
+                       input_shape=(len_dim, data_dim)))
     else:
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
-                       input_shape=(1, data_dim)))
+                       input_shape=(len_dim, data_dim)))
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
-                       input_shape=(1, data_dim)))
+                       input_shape=(len_dim, data_dim)))
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
-                       input_shape=(1, data_dim)))
+                       input_shape=(len_dim, data_dim)))
 
     model.add({{choice([Dropout(0.5), Dropout(0.2)])}})
     model.add(Dense(num_classes, activation={{choice(['softmax', 'relu', 'tanh', 'sigmoid'])}}))
@@ -125,8 +136,8 @@ def data():
             x_train = np.take(rows[x_data_indices[0]:x_data_indices[1]], ids_train).reshape(-1, 1, 1)
             x_test = np.take(rows[x_data_indices[0]:x_data_indices[1]], ids_test).reshape(-1, 1, 1)
         elif x_data_indices[0] == 1:
-            x_train = np.take(rows[x_data_indices[0]], ids_train).reshape(-1, 1)
-            x_test = np.take(rows[x_data_indices[0]], ids_test).reshape(-1, 1)
+            x_train = np.array([x[:311] for x in np.take(rows[x_data_indices[0]], ids_train)])
+            x_test = np.array([x[:311] for x in np.take(rows[x_data_indices[0]], ids_test)])
         else:
             x_train = np.take(rows[x_data_indices[0]], ids_train).reshape(-1, 1, 1)
             x_test = np.take(rows[x_data_indices[0]], ids_test).reshape(-1, 1, 1)
@@ -154,7 +165,7 @@ if __name__ == '__main__':
     best_run, best_model = optim.minimize(model=create_model,
                                           data=data,
                                           algo=tpe.suggest,
-                                          max_evals=100,
+                                          max_evals=32,
                                           trials=Trials())
     with open('model_' + args.X + "_" + args.y + ".model", 'w') as outfile:
         json.dump(best_model.to_json(), outfile)
