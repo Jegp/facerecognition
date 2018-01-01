@@ -128,7 +128,7 @@ def data():
         # Remove NAN values if 3 is removed
         if y_data_index == 5:
             ids_train = [x[0] for x in enumerate(rows[5][:880]) if not x[1] == None]
-            ids_test = [x[0] for x in enumerate(rows[5][880:]) if not x[1] == None]
+            ids_test = np.array([x[0] for x in enumerate(rows[5][880:]) if not x[1] == None]) + 880
         elif x_data_indices[0] == 1:
             ids_train = [x[0] for x in enumerate(rows[1][:880]) if len(x[1]) >= 213]
             ids_test = [x[0] for x in enumerate(rows[1][880:]) if len(x[1]) >= 213]
