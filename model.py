@@ -34,11 +34,9 @@ def create_model(x_train, y_train, x_test, y_test):
 
     x_value = load_x_value()
     if x_value == "xy":
-        len_dim = 311
-        data_dim = 2
+        shape = (213, 2)
     else:
-        len_dim = 1
-        data_dim = 1
+        shape = (1, 1)
     num_classes = load_y_index_and_classes()[1]
 
     # Expected input shape: (batch_size, data_dim)
@@ -48,21 +46,21 @@ def create_model(x_train, y_train, x_test, y_test):
     branch = conditional({{choice(['two', 'three', 'four'])}})
     if branch == 'two':
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
-                   input_shape=(len_dim, data_dim)))
+                   input_shape=shape))
     elif branch == 'three':
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
-                       input_shape=(len_dim, data_dim)))
+                       input_shape=shape))
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
-                       input_shape=(len_dim, data_dim)))
+                       input_shape=shape))
     else:
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
-                       input_shape=(len_dim, data_dim)))
+                       input_shape=shape))
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}}, return_sequences=True,
-                       input_shape=(len_dim, data_dim)))
+                       input_shape=shape))
         model.add(LSTM({{choice([8, 16, 32, 64, 128])}},
-                       input_shape=(len_dim, data_dim)))
+                       input_shape=shape))
 
-    model.add({{choice([Dropout(0.5), Dropout(0.2)])}})
+    model.add(Dropout(0.5))
     model.add(Dense(num_classes, activation={{choice(['softmax', 'relu', 'tanh', 'sigmoid'])}}))
 
     # Change loss function based on input dimensionality
@@ -132,8 +130,8 @@ def data():
             ids_train = [x[0] for x in enumerate(rows[5][:880]) if not x[1] == None]
             ids_test = [x[0] for x in enumerate(rows[5][880:]) if not x[1] == None]
         elif x_data_indices[0] == 1:
-            ids_train = [x[0] for x in enumerate(rows[1][:880]) if len(x[1]) > 200]
-            ids_test = [x[0] for x in enumerate(rows[1][880:]) if len(x[1]) > 200]
+            ids_train = [x[0] for x in enumerate(rows[1][:880]) if len(x[1]) >= 213]
+            ids_test = [x[0] for x in enumerate(rows[1][880:]) if len(x[1]) >= 213]
 
         y_train = (np.take(rows[y_data_index], ids_train)).reshape(-1, 1)
         y_test = (np.take(rows[y_data_index], ids_test)).reshape(-1, 1) 
@@ -141,15 +139,15 @@ def data():
         if len(x_data_indices) == 2:
             x_train = np.take(rows[x_data_indices[0]:x_data_indices[1]], ids_train).reshape(-1, 1, 1)
             x_test = np.take(rows[x_data_indices[0]:x_data_indices[1]], ids_test).reshape(-1, 1, 1)
-
         elif x_data_indices[0] == 1:
-            x_train = [np.array(x[:213]) for x in np.take(rows[x_data_indices[0]], ids_train)]
-            x_test = [np.array(x[:311]) for x in np.take(rows[x_data_indices[0]], ids_test)]
+            x_train = np.array([np.array(x[:213]) for x in np.take(rows[1], ids_train)])
+            x_train = np.delete(x_train, 422, axis=0)
+            y_train = np.delete(y_train, 422, axis=0)
+            x_train = np.array([x.reshape(213, 2) for x in x_train])
+            x_test = np.array([np.array(x[:213]) for x in np.take(rows[1], ids_test)])
         else:
             x_train = np.array([np.array(x) for x in np.take(rows[x_data_indices[0]], ids_train)]).reshape(-1, 1, 1)
             x_test = np.array([np.array(x) for x in np.take(rows[x_data_indices[0]], ids_test)]).reshape(-1, 1, 1)
-
-    print(x_train[0].shape)
 
     return x_train, y_train, x_test, y_test
 
