@@ -1,0 +1,528 @@
+% This is based on the LLNCS.DEM the demonstration file of
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+
+\documentclass{llncs}
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{nameref}
+\usepackage{hyperref}
+\usepackage{cite}
+\pagestyle{headings}
+
+\begin{document}
+
+\title{Predicting familiarity from gaze data}
+%
+\titlerunning{Predicting familiarity from gaze data}  % abbreviated title (for running head)
+%                                     also used for the TOC unless
+%                                     \toctitle is used
+%
+\author{Dan Graakjær \and Jens Egholm}
+%
+\authorrunning{Ivar Ekeland et al.} % abbreviated author list (for running head)
+%
+%%%% list of authors for the TOC (use if author list has to be modified)
+\tocauthor{Dan Graakjær, Jens Egholm}
+%
+\institute{Copenhagen University\\
+Dan G. Kristensen - \email{nbs151@alumni.ku.dk\\}
+Jens E. Pedersen - \email{xtp778@alumni.ku.dk\\}
+}
+
+\maketitle              % typeset the title of the contribution
+
+\begin{abstract}
+Eye-tracking is a cheap tool for efficiently measuring and analysing responses from
+the visual system to visual or verbal stimulus. It has been shown that
+eye movement follows typical pattern based on input stimuli and familiarity of the stimuli.
+In this article we explore the predictability of eye movements of known and unknown visual stimuli,
+asking whether gaze data can be used to recognise the familiarity of faces. Using LSTM deep learning
+networks, we build four models to predict face familiarity based on fixations and fixation coordinates.
+We conclude that the performance is too poor to support the hypothesis and that further study with more
+participants, data and computational power is required to disprove the hypothesis.
+\keywords{eye-tracking, face recognition, neural networks}
+\end{abstract}
+
+\section{Introduction}
+Noton and Stark showed that eye movements follow certain pre-learned patterns when recognizing stimuli \cite{noton1971}.
+Once a stimuli has been learned, the eye will follow the same patterns when met with the same stimuli in the future \cite{noton1971, henderson2005}. These patterns have clear functions to aid us in learning tasks, and are employed differently for different types
+of stimulus \cite{henderson2005}. Human faces have been extensively used in experiments because of the distinct features in focused 
+areas of interests  (AOI) that provides somewhat clear scanpath patterns \cite{holmqvist2011,noton1971,henderson2005}.
+However, Henderson, Williams and Falk questions whether the initially learned pattern is employed for every successive stimulus \cite{henderson2005}. Instead, there is
+evidence that ``eye movements become more restricted during recognition than during learning'' \cite[p. 104]{henderson2005}, indicating that eye movement patterns are different when a stimuli is being learned and when it is being recognised.
+
+Judd et al has shown that machine learning models can be built to predict where humans will look, based on the AOIs of some given stimulus \cite{judd2009}. This proves the claim that there is some form of systematism to the human gaze \cite{noton1971,holmqvist2011,judd2009,rayner1998}, and that at least parts of it can be learned by an intelligent algorithm.
+
+The hypothesis in this paper is that familiarity with a given stimulus can be determined solely based on gaze data.
+Specifically we will examine number of fixations and fixation coordinates to predict whether persons are familiar or unfamiliar.
+
+\subsection{Fixations}
+Fixations are time periods where the eye stands still for approximately 200-300 ms\cite{holmqvist2011}.\footnote{In fact the human  
+eye constantly performs \textit{tremors} and never stands completely still \cite{holmqvist2011}.} Fixations have shown to be
+associated with deeper processing in the brain, compared to brief visual verification such as pilots routinely checking
+instrument panels \cite{rayner1998, holmqvist2011}. However, it is unclear whether fixation length is different in learning 
+versus recognition \cite{henderson2005}. In that respect fixation duration is unlikely to aid in familiarity prediction. 
+
+However Henderson et al. ``found a greater concentration of fixation time on fewer critical features in recognition
+than in learning'' \cite[p. 104]{henderson2005}, indicating that the number of fixations and number of highlighted AOIs are 
+bigger indicators. Recalling the scan path concept it is similarly plausible that the sequence of the fixations might be
+of importance, since scan paths visit AOIs in a certain order \cite{holmqvist2011}.
+
+\subsection{LSTM}
+Neural networks have shown a remarkable capability to recognise patterns in large amounts of data and are being 
+applied in a vast array of domains \cite{schmidhuber2015,nilsson2009}. Early networks were brittle and fragile to large
+changes in input, causing the invention of back-propagating networks, that constantly re-evaluates the effect of stimuli
+changes \cite{schmidhuber2015,russel2014}. Back-propagating networks suffers shortcomings when applied to larger networks where gradient descent algorithms are incapable of escaping local extrema \cite{russel2014}. To counter this, suggestions were made on how to retain and share network state, capturing the best properties and making them re-occur over the lifetime of the network \cite{russel2014, nilsson2009}. Networks of this type are dubbed recurrent neural networks. Hochreiter and Scmidhubner built on this idea with a model for Long Short-Term Memory (LSTM) \cite{schmidhuber1997}. The model ‘remembers’ previous configurations and retains the best configuration for future iterations \cite{schmidhuber1997, kristensen2017}. 
+
+LSTM networks build on a more complicated model of a neuron named an LSTM unit. The unit is more complex than a perceptron because the input-output flow is accompanied by three gates, which can influence the activation of the neuron \cite{schmidhuber1997, schmidhuber2015}. The gates influences the input, output and ‘forgetting rate’ of the LSTM unit, using information threshold that persists beyond the units, giving it a more permanent and stable state (ibid.). This architecture has won several competitions in
+within pattern recognition and are unbested in many domains \cite{schmidhuber2015}.
+
+\subsection{Neural network optimization}
+Historically gradient descent has been a popular choice as a method to train neural networks because it is quicker to adapt than simple linear adaptation \cite{russel2014} \cite{nilsson2009}. To avoid falling into local extrema, stochastic gradient descent (SGD) are heavily used as a noisy approximation \cite{russel2014}. Another method called resilient back-propagation (Rprop) attempts to correct weights in neural networks in back-propagating networks by taking previous weights into account \cite{nilsson2009}. Inspired by both the SGD and Rprop algorithms, root mean square propagation (RMSprop) applies gradient descent while adapting to the magnitude of recent gradients \cite{tieleman2012}. This approach has proved efficient for training recurrent neural networks due to its back-propagating and stochastic abilities (ibid.).
+
+\subsection{Neural network regularization}
+Excessive training on the same data can lead to generalisation problems \cite{russel2014}. Too many iterations of a training set can train the machine learning model to adapt to specific features of the training dataset instead of global features represented by a separate test dataset. This type of overfitting leads to drastic performance drops when cross-validating the model. A common strategy to avoid overfitting in neural networks, and LSTMs in particular, is to randomly drop features in the network \cite{russel2014}. This forces the network to redundantly reinforce input patterns and throw away less important structures, making it more robust and less prone to data-specific feature adaptation.
+
+\section{Method}
+\subsection{Participants}
+Ten participants, aged 20-38 years took part in the experiment. Of the ten participants, five were female and five were male. While some of the participants used glasses, no significant eye conditions were reported by any of them.
+
+\subsection{Stimuli}
+The stimuli consisted of 103 images of different faces. 3 of the 103 images acted as preparation images and were not included in the analysis. The 100 images belonged to three different categories: Famous, non-famous and domain. The famous category consisted of 25 images of very famous and easily recognizable people, while the non-famous category contained 25 images of non-famous people and the domain category consisted of 50 images of people who were famous within different domains, i.e. music, politics or sports.\footnote{The exact stimulus is shown in \nameref{appendix:stimulus} on page \ref{appendix:stimulus}} A domain category ensures that the images are not rated the same by each of the participants and thereby providing diversity in the data. 
+
+All images were normalized to control for spurious effects of colour, orientation and size. All images were grayscaled and aligned both with regards to rotation and eyes, based on three AOIs: left eye, right eye and nose. The scaling was done using OpenCV.\footnote{The script is available in Python, see \nameref{appendix:code} on page \ref{appendix:code}.}
+
+The experiment resulted in gaze data from 10 participants over 100 images each, providing 1000 data points.
+
+\subsection{Experimental design}
+All gaze data was recorded using a Tobii T120 Eye Tracker and the Tobii Studios Software and was
+afterwards processed using Python.\footnote{For a more detailed run-through of the experimental design, see \nameref{appendix:code} and \nameref{appendix:experiment} on pages \ref{appendix:code}-\ref{appendix:experiment}.}\\
+
+The experiment itself was conducted using a manuscript (see \nameref{appendix:experiment}) where each participant was welcomed and given a short briefing on the experiment. He/she was placed in front of the eye tracker which was then calibrated. Here they were presented with a preparation segment (which was not included in the final analysis) and then a segment for each of the 100 images. One segment consists of a fixation point (1.5 seconds), an image (3 seconds) and a questionnaire where they would rate the familiarity of the person in the image (until an answer was given). The order of the segments were randomized, but were the same for each participant. The experiment was concluded when the participant had gone through all 100 segments. In the questionnaire the participants rated the familiarity of a person using a Likert scale shown in table \ref{tab:scale}.
+
+\begin{table}[htp]
+\label{tab:scale}
+\centering
+\begin{tabular}{ll}
+1. & Not at all familiar \\
+2. & Slightly familiar \\
+3. & Somewhat familiar \\
+4. & Moderately familiar \\
+5. & Extremely familiar
+\end{tabular}
+\end{table}
+
+A pilot study was performed, where the fixation point was set to 2 seconds and the image for 5 seconds. It was found that
+the participant expressed a high degree of fatigue after the first 70 pictures (500 seconds + response time $\approx$ 20 minutes).
+This was visible by several data points missing in the gaze-data and the participant's verbal expressions.
+For that reason we decided to decrease the image and fixation point time to 1.5 and 3 seconds respectively.
+\\
+
+\subsection{Preprocessing}
+The output gaze data for each participant was cropped to the time where the participants were actively looking at images, and paired 
+with the questionnaire response for that image.
+
+Since the participants rated each image using a Likert scale, there is five degrees of familarity in our data set. The purpose of this study is to predict familarity and not degree of familarity, so the labels were transformed, reducing the number of classes from 5 to 2, taking a binary classification approach to the data instead. To ensure as little loss of information as possible, we employed two different approaches: 
+
+\begin{enumerate}  
+\item Only the label 'Not at all familiar' was recognized as truly unfamiliar and the rest was labeled as familiar
+\item The label 'Not at all familiar' is labeled as unfamiliar (0), all vectors with label 'Slightly familiar' or 'Somewhat familiar' removed from the data (two smallest and most semantically vague categories). Vectors with label 'Moderately familiar' and 'Extremely familiar' labeled as familiar (1).
+\end{enumerate}
+
+
+\begin{table}[htp]
+\centering
+\caption{Distribution of ratings}
+\label{Distribution of ratings}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+Not at all familiar & Slightly familiar & Somewhat familiar & Moderately familiar & Extremely familiar \\ \hline
+394 & 120 & 75 & 123 & 288 \\ \hline
+\end{tabular}
+\end{table}
+
+By taking a binary approach, we ensure that the data is within the scope of our hypothesis and get a
+much better prediction accuracy as it will be extremely difficult predicting an exact rating between
+1-5. Looking at table 1, the two extremes 'Not at all familiar' and 'Extremely familiar' are the
+most represented categories in the data, with 'Not at all familiar' being the most dominating. In
+the new distribution, after the binary transformation, the 'Familiar' category is the most dominant
+category with 606 occurrences in the first binary category and 486 in the second one.  	
+
+\begin{table}[htp]
+\centering
+\caption{Distribution of ratings after transformation}
+\label{transf-distribution}
+\begin{tabular}{|l|l|l|}
+\hline
+                                                            & 0 (Unfamiliar) & 1 (Familiar) \\ \hline
+Binary                                                      & 394            & 606          \\ \hline
+\begin{tabular}[c]{@{}l@{}}Binary no 2 and 3\end{tabular} & 394            & 486          \\ \hline
+\end{tabular}
+\end{table}
+
+After the labels were transformed, the most important features of the data set were extracted: The fixation coordinates and the number of fixations. Each fixation coordinate accounts for 8-9 milliseconds of the recorded data, meaning that it is possible to have several fixation coordinates in sequence with same value (the more identical fixation coordinates in sequence means a longer fixation). The number of fixations in an image can then be estimated as the number of unique fixation coordinates in sequence. Another important thing to note is that the number of fixation coordinates varied a lot between the 1000 data points. In most cases, the number of coordinates was around 300, but a few of the data points had below 200 coordinates. This raised several issues: Firstly, if a data point has too few coordinates, it indicates that the eye tracker had problems reading the participants eye movements correctly. If this is the case, then the sample might not be representative of the participants eye movements in the experiment and could contaminate the analysis. Secondly, since each data point represents the participants fixation point over time, we want the same number of coordinates for each participant. We cannot compare two data points if one of them is significantly longer than the other, as time may very well be a compromising factor. Therefore all data points with fewer coordinates than 213 were removed from the data set and the rest of the data points were sliced, resulting in a regular array of length 213, corresponding to an unknown number of fixation points over a timespan of around 1900 milliseconds for each of the images. 
+
+\subsection{Data models}
+Four models could now be constructed combining either binary or binary without the second and third category, with the number of fixations or all fixation coordinates.
+All four models employ LSTM networks \cite{schmidhuber2015}, using the deep learning framework Keras \cite{keras}. To avoid overfitting each layer drops 50\% of the LSTM features. 
+
+All hyperparameter tuning was performed using Hyperas \cite{hyperas}. The parameters being trained was single, double or three-tiered layered LSTM networks, number of LSTM cells for each layer (from 2 to 128), the activation function for the final network layer and the optimizer (RMSprop, adam or SGD).\footnote{See \nameref{appendix:code} on page \ref{appendix:code} for more information.}
+
+\subsection{Metrics}
+For assessing the models three values are used: precision, recall and F1 score. Precision denotes the amount of correct guesses out of the total amount of guesses made. Recall tells us how many of the positives are actually false negatives, or, how many relevant items have been selected. F1-score is a mean of how well the amount of correct positives compare to the amount of all positive results from the classifier. The distinction between precision and recall is necessary to know how well the model not only classifies the correct results, but also capture the wrong results. This property is especially important to avoid false positives \cite{agresti2009}.
+
+\begin{figure}
+\centering
+\caption{Formula for calculating F$_{1}$ score \cite{w:precision}.}
+$F_1 = 2 \cdot \frac{\mathrm{precision} \cdot \mathrm{recall}}{\mathrm{precision} + \mathrm{recall}}$
+\end{figure}
+
+All scores range from 0 to 1, where higher is better. If the models attain a precision of 1, it correctly predicts all samples correctly.
+
+\subsubsection{Cohen's Kappa}
+When dealing with unbalanced classes in classification, it is important to take into consideration the expected vs. observed accuracy of ones model. This means that the class frequency has to be considered a factor when evaluating ones results. In the case of this study, we have two different data splits: 
+
+\begin{enumerate}
+\item Binary, where 60\% of the instances belongs to the familiar class (606/1000)
+\item Binaryno23, where 55\% of the instances belongs to the familiar class (486/880)
+\end{enumerate}
+
+This means that while the models might report accuracies above chance, which is 50\% when dealing
+with binary classes, the unevenly distributed instances will have influenced these numbers and above chance will now have a higher threshold. The point of the Kappas coefficient is to take these points into consideration when evaluating the model. Here the distance between the observed accuracy (precision) and the expected accuracy (the performance of a totally random classifier). If a large distance is observed, one can conclude that the model is performing above chance and the model can be considered successful. While the interpretation of the kappa values are relative to the specific case, some generalisations can be made. According to Fleiss, J.L. \cite{kappa} a kappa value of 0.75 can be considered as excellent, 0.40 to 0.75 is fair to good, and below 0.40 is poor. 
+
+
+\section{Results}
+Table \ref{tab:results} shows the precision, recall and F1 scores for the models. While the F1 values for both models look acceptable at first glance (>0.75), the precision and recall values indicates an underlying issue. The high recall in all cases seems to be a symptom of a too inclusive model, which in this case means that too often the model will classify instances as belonging to the 'familiar' class. This also explains why precision is relatively high while the model performs poorly, as the dominant class frequency will influence the precision.
+
+\begin{table}[htp]
+\label{tab:results}
+\centering
+\caption{Precision, recall and F1 score respectively for all four models.}
+\begin{tabular}{|r|c|c|}
+\hline
+ & Number of fixations & Fixation coordinates \\
+Binary & 0.647 / 0.862 / 0.751 & 0.658 / 0.961 / 0.780 \\
+Binary no  2 and 3 & .663 / 1.0 / 0.792 & 0.643 / 1.0 / 0.782 \\
+\hline
+\end{tabular}
+\end{table}
+
+To better understand the performance of a model when dealing with unbalanced classes, it's necessary to take the class frequency into consideration and get an idea of the distance between the expected vs. actual accuracy. Calculating the Cohen's kappa coefficient will do exactly this and give a metric based on this distance:
+
+\begin{table}[htp]
+\centering
+\caption{Cohen's kappa coefficient}
+\label{tab:kappa}
+\begin{tabular}{|l|l|}
+\hline
+                      & Cohen's kappa \\ \hline
+Fixations and binary  & 0.027         \\ \hline
+Fixations and binary no 2 and 3 & 0.0 \\ \hline
+Coordinates and binary & 0.116 \\ \hline
+Coordinates and binary no 2 and 3 & 0.0 \\ \hline
+\end{tabular}
+\end{table}
+
+Table \ref{tab:kappa} reports a very low kappa value for all of the models. As per the metrics section, a kappa value below 0.40 can be considered as poor. In this case all kappa values are below 0.4, indicating low distance between the expected vs. observed accuracy. In sum none of the models have a significantly higher accuracy than expected, when taking the class frequencies into consideration.
+
+
+\section{Discussion}
+While the f1 scores are relatively high, the precision and Cohen's kappa shows us that the model is imperfect.
+The models work solely with a binary dependent variable, where ~60\% of the data is within a single category.
+In absence of clear patterns in the data, the models have reverted to the simplest baseline. This does not
+entirely disprove the theory however. Cohen's kappa informs us how much is attributed to chance, which, by
+definition, cannot be much different than the precision scores extracted from the models (around 60/40).
+
+A number of choices have been made in setting up the experiment and constructing the models that should be
+investigated. Two choices is particularly interesting: the discrete dependendent variables and the
+number of participants.
+
+All models were predicting a binary dependent variable, which leaves out a large part of the complexity
+captured by the concept of \textit{familiarity}. Having, say, a numeric dependent variable would force the
+model to take this into consideration and reveal any subtleties between the two extremes. This also questions
+the method with with \textit{familiarity} is measured. Choosing a Likert scale might not be the most optimal
+way of rating it. Instead it would be interesting to examine a scale with 10 or even 100 discrete steps.
+
+Second choice regards the number of participants. 10 participants is considered a small experiment, and
+the size and homogeneity of the group results in low external validity. For a truly comparable experiment
+the participants should be increased and diversified.
+
+A final point for discussion is the use of deep learning frameworks. LSTM networks have proven to discover
+and retain patterns in large datasets. If the patterns are hard to distinguish and possibly even individual,
+this simple network (compared to the human brain) will have a hard time to discover the correlations. A
+future study should execute the simulations on a much more powerful computer, allowing for a wider range
+of hyperparameters for both the LSTM cells and number of layers.
+
+\section{Conclusion}
+This article set out to conduct an eye tracking experiment with the hope of finding a correlation between
+eye movement patterns and familiarity of visual stimuli. A study was conducted using 10 participants that
+rated 100 images to be more or less familiar. Four models was constructed to extract relevant patterns
+from the data, but all showed a mismatch between their precision and recall, leading to the conclusion that
+none of the models were able to improve beyond baseline. While this study argues for the rejection of the
+hypothesis, no strong generalization should be built upon these findings due to low external validity and
+the improvements that could be made to the data processing, experiment scale and machine learning setup.
+
+\clearpage
+
+%
+% ---- Bibliography ----
+%
+\begin{thebibliography}{5}
+%
+\bibitem{agresti2009}
+Agresti, Alan and Finaly, Barbara:
+Statistical methods for the social sciences.
+Pearson Prentice Hall, 2009,
+ISBN 978-0-13-027295-9
+
+\bibitem{henderson2005}
+Henderson, John M. and Williams, Carrick C. and Falk, Richard J.: "Eye movements are functional during face learning",
+in Memory {\&} Cognition (33), 2005 pp. 98--106
+
+\bibitem{holmqvist2011}
+Holmqvist, Kenneth and Nyström, Marcus: Eye tracking,
+A comprehensive guide to methods and measures,
+Oxford University Press, 2011,
+ISBN: 978-0-19-873859-6
+
+\bibitem{hyperas}
+Hyperas - Hyperparameter optimization framework,
+\url{http://maxpumperla.github.io/hyperas/},
+retrieved 1/1/2018
+
+\bibitem{judd2009}
+T. Judd, K. Ehinger, F. Durand and A. Torralba, "Learning to predict where humans look," 2009 IEEE 12th International Conference on Computer Vision, Kyoto, 2009, pp. 2106-2113.
+
+\bibitem{keras}
+Keras - Deep learning framework for Python,
+\url{https://keras.io}, retrieved 1/1/2018
+
+\bibitem{kristensen2017}
+Kristensen, Dan G., Pedersen, Jens E. and Kenhof, Tobias S. W. Y.:
+Dominant modalities in LSTM networks, Cognitive Science 2,
+IT \& Cognition, Copenhagen University, 2017
+
+\bibitem{nilsson2009}
+Nilsson, Nils J.: “The quest for artificial intelligence - A history of ideas and achievements”, 
+Cambridge University Press 2009.
+
+\bibitem{noton1971}
+Noton, D., \& Stark, L. (1971). Scan paths in eye movements during pattern perception. 
+Science, 171, 308-311
+
+\bibitem{kappa}
+Fleiss, J.L. (1981). Statistical methods for rates and proportions (2nd ed.). New York: John Wiley.
+
+\bibitem{rayner1998}
+Rayner, K. (1998). Eye movements in reading and information processing:20 years of research. 
+Psychological bulletin, 124(3), 372.
+
+\bibitem{russel2014}
+Russel, S. and Norvig P., “Artificial Intelligence, A Modern Approach”, 
+Third edition, Pearson New International Edition, Pearson, 2014
+
+\bibitem {schmidhuber2015}
+Schmidhuber, J.:
+Deep Learning in Neural Networks: An Overview,
+Neural Networks (61), pp 85-117, 2015
+
+\bibitem {schmidhuber1997}
+Schmidhuber, Jürgen and Hochreiter, Sepp: “Long Short-Term Memory”,
+Neural Computation, volume 9, issue 8, November 15, pp. 1735-1780, 1997
+
+\bibitem{tieleman2012}
+Tieleman, Tijmen and Hinton, Geoffrey: “Lecture 6.5-rmsprop: Divide the gradient by a running average of its recent magnitude”, Coursera: Neural Networks for Machine Learning, 2012.
+
+\bibitem{w:precision}
+Wikipedia article: "Precision and recall",
+\url{https://en.wikipedia.org/wiki/Precision_and_recall}, retrieved 1/1/2018
+
+\end{thebibliography}
+
+\clearpage
+
+\section*{Appendix A: Code}
+\label{appendix:code}
+
+All code is available on GitHub at \url{https://github.com/Jegp/facerecognition}.
+
+\subsection*{Face alignment}
+The scripts for the face alignments are available under the \texttt{face-alignment} repository.
+The \texttt{align\_faces.py} script locates AOIs of a face, grayscales the colours while scaling and rotating the picture so all faces
+are centered around the same location with the same distance to the AOIs.
+
+\subsection*{Model construction}
+The models were all built with Keras \cite{keras} and the hyperparameters were found using Hyperas \cite{hyperas}.
+The code for the model building can be found at the above GitHub in the file \texttt{model.py}.
+
+All models were persisted for the sake of replication and can be found on the above GitHub under the names \texttt{model\_[input]\_[output].model} where \texttt{[input]} is either \textit{fixations} or \textit{xy} and \texttt{output} is either \textit{binary} or \textit{binaryno23}.
+
+\subsection*{Model evaluation}
+The most optimal models are stoder in \texttt{*.model} files in the GitHub directory. The are evaluated in the Jupyter Notebook file \texttt{Evaluation.ipynb}. The file can be viewed directly from GitHub at \url{https://github.com/Jegp/facerecognition/blob/master/Evaluation.ipynb}.
+
+\clearpage
+
+\section*{Appendix B: Experimental design and protocol}
+\label{appendix:experiment}
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
+\item
+  Instructions read out to participants
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii})}
+  \item
+    \begin{quote}
+    ``In this experiment we will ask you to look at faces of more or
+    less familiar people. For each face you will be asked to rate how
+    familiar the face is, ranging from ``Not at all familiar'' to
+    ``Extremely familiar''. The experiment is expected to last 20
+    minutes. Before the experiment we will calibrate the eye-tracker.
+    Please find a position where you can sit comfortably for 20 minutes
+    to avoid re-calibration. Do you have any questions before we
+    begin?''
+    \end{quote}
+  \end{enumerate}
+\item
+  Calibrate eye-tracker
+\item
+  Instructions on screen
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii})}
+  \item
+    \begin{quote}
+    ``In this experiment we will ask you to look at faces of more or
+    less familiar people. For each face you will be asked to rate how
+    familiar the face is, ranging from ``Not at all familiar'' to
+    ``Extremely familiar''.''
+    \end{quote}
+  \item
+    \begin{quote}
+    ``Press key when ready.''
+    \end{quote}
+  \end{enumerate}
+\item
+  Pilot phase
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii})}
+  \item
+    \begin{quote}
+    1x:
+    \end{quote}
+
+    \begin{enumerate}
+    \def\labelenumiii{\roman{enumiii})}
+    \item
+      1,5s - Cross
+    \item
+      3s - pilot image from domain category, non-randomized selection
+    \item
+      Until selected - answer
+    \end{enumerate}
+  \item
+    \begin{quote}
+    ``Everything clear? Press any key when ready to start.''
+    \end{quote}
+  \item
+    \begin{quote}
+    1x (without informing the participant):
+    \end{quote}
+
+    \begin{enumerate}
+    \def\labelenumiii{\roman{enumiii})}
+    \item
+      1,5s - Cross
+    \item
+      3s - pilot image from domain category, non-randomized selection
+    \item
+      Until selected - answer
+    \end{enumerate}
+  \end{enumerate}
+\item
+  Testing phase
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii})}
+  \item
+    \begin{quote}
+    100x:
+    \end{quote}
+
+    \begin{enumerate}
+    \def\labelenumiii{\roman{enumiii})}
+    \item
+      1,5s - Cross
+    \item
+      3s - testing image, randomized selection
+    \item
+      Until selected - answer
+    \end{enumerate}
+  \end{enumerate}
+\item
+  End
+
+  \begin{enumerate}
+  \def\labelenumii{\alph{enumii})}
+  \item
+    \begin{quote}
+    ``Thank you for participating.''
+    \end{quote}
+  \end{enumerate}
+\end{enumerate}
+
+\textbf{Answer:}
+
+When answering, participants will select the most appropriate score
+that, in their opinion, describes the familiarity of the person in the
+photo. We use
+this\href{http://www.sawtoothsoftware.com/support/knowledge-base/design-and-methodology-issues/1444-likert-scale-response-anchors}{\emph{
+Linkert scale}} for familiarity.
+
+\textbf{Data:}
+
+Custom data set of 100 (+2) photos was created using free online
+resources. Each image belongs to one of three categories - famous,
+domain, unknown. Famous and unknown categories contain photos of people
+that should be universally recognizable or unrecognizable, respectively.
+Domain category includes photos that depict people who are famous and
+recognizable, however, only if the participant is familiar with their
+domain (i.e. sports, politics,...). Domain category ensures that an
+overlap in familiarity/unfamiliarity will exists in the dataset,
+however, it will not be at a cost of increased confusion (i.e. domain
+people are either very familiar or almost unknown).
+
+\protect\hypertarget{anchor-1}{}{}Checklist
+
+\begin{itemize}
+\item
+  Phones on silent
+\item
+  Ask questions before start
+\item
+  Leave the room to prepare for next participant
+\end{itemize}
+
+\protect\hypertarget{anchor-2}{}{}Literature
+
+\href{https://www.researchgate.net/publication/262886751_Vision_Research_a_Practical_Guide_to_Laboratory_Methods?ev=post}{\emph{https://www.researchgate.net/publication/262886751\_Vision\_Research\_a\_Practical\_Guide\_to\_Laboratory\_Methods?ev=post}}
+
+\href{https://www.researchgate.net/publication/254913339_Eye_Tracking_A_Comprehensive_Guide_To_Methods_And_Measures}{\emph{https://www.researchgate.net/publication/254913339\_Eye\_Tracking\_A\_Comprehensive\_Guide\_To\_Methods\_And\_Measures}}
+
+\clearpage
+
+\section*{Appendix C: Stimulus}
+\label{appendix:stimulus}
+
+The stimulus was found using the Google search engine. Attribution, links and the actual stimuli is available through the GitHub
+website listed in \nameref{appendix:code}.
+
+Attributions and links can be found \href{https://github.com/Jegp/facerecognition/blob/master/stimulus.md}{in the \texttt{stimulus.md} file}.
+
+Actual stimuli can be found in the \texttt{domain}, \texttt{famous} and \texttt{unknown} folders.
+
+\end{document}
